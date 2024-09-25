@@ -1,5 +1,6 @@
 import { QueryBuilder } from '../../builder/QueryBuilder';
 import { TImageFiles } from '../../interfaces/image.interface';
+import { meiliClient } from '../../utils/meillSearch';
 // import {
 //   addDocumentToIndex,
 //   deleteDocumentFromIndex,
@@ -17,6 +18,26 @@ const createItemIntoDB = async (payload: TItem, images: TImageFiles) => {
   payload.images = itemImages.map((image) => image.path);
 
   const result = await Item.create(payload);
+
+  const {
+    _id,
+
+    title,
+    description,
+    images: itemImage,
+  } = result;
+
+  await meiliClient
+    .index('item')
+    .addDocuments([
+      {
+        _id: _id.toString(),
+        title,
+        description,
+        itemImage,
+      },
+    ])
+    .then((res) => console.log(res));
 
   // await addDocumentToIndex(result, 'items');
   return result;
